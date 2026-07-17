@@ -1,4 +1,4 @@
-# CommercePilot
+# Commerce
 
 AI-first commerce platform — Support, Inventory and Shopping intelligence as vertical pods on one FastEndpoints modular monolith. **Fully local:** SQL Server LocalDB + Ollama, no Docker, no cloud keys.
 
@@ -55,7 +55,20 @@ md/                          Architecture doc + pod build plans
 
 Local-first by default; cloud services are opt-in (`archtecture.txt` decision 10):
 
-- `Llm` — `ollama` (default) | `openai` | `gemini`
+- `Llm` — `ollama` (default, free/local) | `openai` (wired) | `gemini` (stub). To use your GPT key, put this in git-ignored `src/Commerce.Api/appsettings.Development.json` (or set `OPENAI_API_KEY`) and restart:
+
+  ```json
+  "Llm": {
+    "Provider": "openai",
+    "ChatModel": "gpt-5-mini",
+    "EmbeddingModel": "text-embedding-3-small",
+    "ApiKey": "sk-…",
+    "InputCostPer1M": 0.25,
+    "OutputCostPer1M": 2.0
+  }
+  ```
+
+  Embeddings re-ingest automatically whenever the embedding model changes (vectors from different models aren't comparable; both providers are pinned to 768 dims). Cost per call is computed from the token counts × the `…CostPer1M` values into `AiInteractions`. Switching back to ollama re-ingests again.
 - `Intake` — `form` (default) | `gmail`
 - `Notifications` — `local` (default) | `slack`
 - `Auth:ApiKey` — empty = open local dev; set a value to require `Authorization: Bearer <key>`

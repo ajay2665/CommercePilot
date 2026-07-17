@@ -16,7 +16,7 @@ builder.Services
     {
         o.DocumentSettings = s =>
         {
-            s.Title = "CommercePilot API";
+            s.Title = "Commerce API";
             s.DocumentName = "v1";
             s.Version = "v1";
         };

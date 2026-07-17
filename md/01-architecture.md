@@ -1,4 +1,4 @@
-# CommercePilot — Platform Architecture (Backend + Frontend)
+# Commerce — Platform Architecture (Backend + Frontend)
 
 **Sources reconciled:**
 - [archtecture.txt](../archtecture.txt) — target spec (.NET 9, FastEndpoints, Clean Architecture, pgvector, Next.js 15)
@@ -34,7 +34,7 @@ Where `archtecture.txt` and the md plans disagree, this table is the ruling:
 flowchart TB
     WEB["Next.js 15 dashboard — web/ (port 3000)"] -->|"REST + SSE, OpenAPI-typed"| API
 
-    subgraph MONO["CommercePilot API — modular monolith, .NET 9 + FastEndpoints (port 5080)"]
+    subgraph MONO["Commerce API — modular monolith, .NET 9 + FastEndpoints (port 5080)"]
         API["Commerce.Api — endpoints, validators, auth"]
         APP["Commerce.Application — CQRS handlers, AI pipelines, events, forecast math"]
         INF["Commerce.Infrastructure — EF Core, RAG, LLM clients, connectors"]
@@ -63,8 +63,8 @@ One deployable API, one database. Each pod (Support, Inventory, Shopping) is a v
 Projects exactly as the spec names them:
 
 ```
-CommercePilot/
-├── CommercePilot.sln
+Commerce/
+├── Commerce.sln
 ├── src/
 │   ├── Commerce.Api/                   # FastEndpoints host — thin HTTP edge
 │   │   ├── Features/
@@ -147,9 +147,9 @@ public sealed class TriageEndpoint : Endpoint<TriageRequest, TriageResponse>
 
 ### 3.3 What we port from SupportDeskAI
 
-This is the explicit mapping of the reference project onto CommercePilot — the workflow/HITL engine graduates unchanged; storage moves file → SQL Server, retrieval moves keyword → semantic vector search, provider moves Gemini → OpenAI behind the same interface:
+This is the explicit mapping of the reference project onto Commerce — the workflow/HITL engine graduates unchanged; storage moves file → SQL Server, retrieval moves keyword → semantic vector search, provider moves Gemini → OpenAI behind the same interface:
 
-| SupportDeskAI (reference) | CommercePilot equivalent |
+| SupportDeskAI (reference) | Commerce equivalent |
 |---|---|
 | `TicketQueue` — unbounded `Channel<T>` intake | Same pattern behind `IWorkQueue<T>`; one queue per pipeline (triage, ingestion) |
 | `TicketWorker` — `BackgroundService` driving `InProcessExecution.RunStreamingAsync`, parking paused runs | `TriageWorker` in Infrastructure hosting `SupportDraftWorkflow` runs; identical park-and-continue handoff |

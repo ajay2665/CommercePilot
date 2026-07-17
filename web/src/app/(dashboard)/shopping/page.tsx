@@ -23,7 +23,7 @@ function ProductCard({ card }: { card: ShopProductCard }) {
         {card.brand} · {card.sku}
       </p>
       <div className="mt-2 flex items-center justify-between">
-        <span className="text-lg font-semibold text-slate-900">€{card.price.toFixed(2)}</span>
+        <span className="text-lg font-semibold text-slate-900">${card.price.toFixed(2)}</span>
         {card.reason && <span className="max-w-[60%] truncate text-[11px] text-slate-400">{card.reason}</span>}
       </div>
     </div>

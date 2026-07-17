@@ -116,7 +116,7 @@ public sealed class CartRecoveryWorker(
             await notifier.NotifyAsync(new NotificationMessage(
                 Channel: "Cart Recovery",
                 Title: $"Recovery email → {email}",
-                Message: $"\"You left {string.Join(", ", names)} ({total:F2} EUR) in your cart — complete your order!\"",
+                Message: $"\"You left {string.Join(", ", names)} (${total:F2}) in your cart — complete your order!\"",
                 Severity: NotificationSeverity.Info), ct);
 
             cart.RecoveryEmailSent = true;

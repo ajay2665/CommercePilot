@@ -62,7 +62,7 @@ public sealed class TriageClassifier(
                 messages.Add(new ChatMessage(ChatRole.User,
                     "That was not a single valid JSON object. Respond again with ONLY the JSON object."));
             }
-            catch (Exception ex) when (ex is HttpRequestException or IOException or TaskCanceledException
+            catch (Exception ex) when (ex is HttpRequestException or IOException or TaskCanceledException or System.ClientModel.ClientResultException
                                        && !ct.IsCancellationRequested)
             {
                 stopwatch.Stop();
@@ -93,7 +93,8 @@ public sealed class TriageClassifier(
             InputTokens = (int)(response?.Usage?.InputTokenCount ?? 0),
             OutputTokens = (int)(response?.Usage?.OutputTokenCount ?? 0),
             LatencyMs = latencyMs,
-            CostUsd = 0m, // local model — cost table applies only to cloud providers
+            CostUsd = llmOptions.Value.CostFor(
+                response?.Usage?.InputTokenCount ?? 0, response?.Usage?.OutputTokenCount ?? 0),
             Success = success,
             Error = error,
         });

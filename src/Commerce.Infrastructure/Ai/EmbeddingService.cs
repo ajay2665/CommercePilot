@@ -7,7 +7,6 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using OllamaSharp;
 
 namespace Commerce.Infrastructure.Ai;
 
@@ -42,16 +41,26 @@ public sealed class EmbeddingService(
         {
             if (_cache is not null) return;
 
-            _generator ??= new OllamaApiClient(
-                new HttpClient
-                {
-                    BaseAddress = new Uri(options.Value.Endpoint),
-                    Timeout = TimeSpan.FromSeconds(options.Value.TimeoutSeconds),
-                },
-                options.Value.EmbeddingModel);
+            _generator ??= LlmClientFactory.CreateEmbeddingGenerator(options.Value);
 
             using var scope = scopeFactory.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<CommerceDbContext>();
+
+            // Vectors from different models aren't comparable — if the configured
+            // embedding model changed (e.g. ollama ↔ openai switch), re-ingest.
+            string? storedModel = await db.Embeddings.AsNoTracking()
+                .OrderBy(e => e.Id)
+                .Select(e => e.MetadataJson)
+                .FirstOrDefaultAsync(ct) is { } firstMeta
+                ? ModelFrom(firstMeta)
+                : null;
+            if (storedModel is not null && storedModel != options.Value.EmbeddingModel)
+            {
+                logger.LogInformation(
+                    "Embedding model changed ({Old} → {New}) — re-ingesting all chunks",
+                    storedModel, options.Value.EmbeddingModel);
+                await db.Embeddings.ExecuteDeleteAsync(ct);
+            }
 
             if (!await db.Embeddings.AnyAsync(ct))
                 await IngestAsync(db, ct);
@@ -62,7 +71,7 @@ public sealed class EmbeddingService(
             IsAvailable = true;
             logger.LogInformation("Vector cache ready: {Count} chunks", _cache.Count);
         }
-        catch (Exception ex) when (ex is HttpRequestException or IOException or TaskCanceledException)
+        catch (Exception ex) when (ex is HttpRequestException or IOException or TaskCanceledException or System.ClientModel.ClientResultException)
         {
             logger.LogWarning("Embedding service unavailable ({Error}) — semantic search falls back to keywords", ex.Message);
             _cache = [];
@@ -83,7 +92,7 @@ public sealed class EmbeddingService(
 
         try
         {
-            var embedded = await _generator.GenerateAsync([query], null, ct);
+            var embedded = await _generator.GenerateAsync([query], GenerationOptions(), ct);
             float[] queryVector = embedded[0].Vector.ToArray();
 
             IEnumerable<CachedChunk> scope = sourceTypes is { Length: > 0 }
@@ -96,7 +105,7 @@ public sealed class EmbeddingService(
                 .Take(topK)
                 .ToList();
         }
-        catch (Exception ex) when (ex is HttpRequestException or IOException or TaskCanceledException)
+        catch (Exception ex) when (ex is HttpRequestException or IOException or TaskCanceledException or System.ClientModel.ClientResultException)
         {
             logger.LogWarning("Query embedding failed: {Error}", ex.Message);
             return [];
@@ -115,13 +124,13 @@ public sealed class EmbeddingService(
         {
             string category = p.CategoryId is { } cid ? categories.GetValueOrDefault(cid, "") : "";
             items.Add((KnowledgeSourceType.Product, p.Id, p.Name,
-                $"{p.Name}. {p.Description} Brand: {p.Brand}. Category: {category}. Price: {p.Price:F2} EUR.", p.Brand));
+                $"{p.Name}. {p.Description} Brand: {p.Brand}. Category: {category}. Price: ${p.Price:F2}.", p.Brand));
         }
         foreach (var a in articles)
             items.Add((a.SourceType, a.Id, a.Title, $"{a.Title}. {a.Body}", a.Brand));
 
         logger.LogInformation("Embedding {Count} chunks via {Model}…", items.Count, options.Value.EmbeddingModel);
-        var vectors = await _generator!.GenerateAsync(items.Select(i => i.Content), null, ct);
+        var vectors = await _generator!.GenerateAsync(items.Select(i => i.Content), GenerationOptions(), ct);
 
         for (int i = 0; i < items.Count; i++)
         {
@@ -131,23 +140,41 @@ public sealed class EmbeddingService(
                 SourceId = items[i].Id,
                 ChunkIndex = 0,
                 Content = items[i].Content,
-                MetadataJson = JsonSerializer.Serialize(new { title = items[i].Title, brand = items[i].Brand }),
+                MetadataJson = JsonSerializer.Serialize(new
+                {
+                    title = items[i].Title,
+                    brand = items[i].Brand,
+                    model = options.Value.EmbeddingModel,
+                }),
                 Vector = ToBytes(vectors[i].Vector),
             });
         }
         await db.SaveChangesAsync(ct);
     }
 
-    private static string TitleFrom(string metadataJson)
+    /// <summary>
+    /// 768 dims everywhere (architecture §3.5): nomic-embed-text is 768 natively;
+    /// text-embedding-3-small is asked to truncate to 768 so both providers share
+    /// one comparable vector space and schema.
+    /// </summary>
+    private EmbeddingGenerationOptions? GenerationOptions()
+        => options.Value.IsOllama ? null : new EmbeddingGenerationOptions { Dimensions = 768 };
+
+    private static string TitleFrom(string metadataJson) => FieldFrom(metadataJson, "title") ?? "";
+
+    private static string? ModelFrom(string metadataJson)
+        => FieldFrom(metadataJson, "model") ?? "nomic-embed-text"; // pre-tag rows were nomic
+
+    private static string? FieldFrom(string metadataJson, string field)
     {
         try
         {
             using var doc = JsonDocument.Parse(metadataJson);
-            return doc.RootElement.TryGetProperty("title", out var t) ? t.GetString() ?? "" : "";
+            return doc.RootElement.TryGetProperty(field, out var v) ? v.GetString() : null;
         }
         catch (JsonException)
         {
-            return "";
+            return null;
         }
     }
 

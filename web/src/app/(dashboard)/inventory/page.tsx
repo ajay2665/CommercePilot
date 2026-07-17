@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { Check, LineChart, Sparkles } from "lucide-react";
 import {
@@ -29,7 +30,9 @@ const classLabel: Record<StockClass, string> = {
   overstock: "overstock",
 };
 
-const eur = (v: number) => `€${v.toLocaleString("en-IE", { maximumFractionDigits: 0 })}`;
+const usd = (v: number) => `$${v.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
+
+const FILTERS: (StockClass | "all")[] = ["all", "lowStock", "dead", "overstock", "fast", "slow", "healthy"];
 
 export default function InventoryPage() {
   const { data: health } = useInventoryHealth();
@@ -37,17 +40,22 @@ export default function InventoryPage() {
   const { data: alerts } = useInventoryAlerts();
   const { data: reorders } = useReorderSuggestions();
   const ack = useAckInventoryAlert();
+  const [classFilter, setClassFilter] = useState<StockClass | "all">("all");
 
   const nameOf = (productId: string) => products?.find((p) => p.productId === productId);
+  const countOf = (c: StockClass) => products?.filter((p) => p.classification === c).length ?? 0;
+  const filtered = products?.filter((p) => classFilter === "all" || p.classification === classFilter);
+  const toggleFilter = (c: StockClass) => setClassFilter((current) => (current === c ? "all" : c));
+
   const scoreTone =
     (health?.healthScore ?? 0) >= 70 ? "text-emerald-600" : (health?.healthScore ?? 0) >= 45 ? "text-amber-600" : "text-red-600";
 
-  const tiles = [
+  const tiles: { label: string; value: string | number; tone?: string; filter?: StockClass }[] = [
     { label: "Health score", value: health ? `${health.healthScore}/100` : "—", tone: scoreTone },
-    { label: "Stock value", value: health ? eur(health.totalStockValue) : "—" },
-    { label: "Low stock", value: health?.lowStockCount ?? "—", tone: "text-red-600" },
-    { label: "Dead stock", value: health ? `${health.deadCount} · ${eur(health.deadValue)}` : "—", tone: "text-amber-700" },
-    { label: "Overstock", value: health ? `${health.overstockCount} · ${eur(health.overstockValue)}` : "—", tone: "text-violet-700" },
+    { label: "Stock value", value: health ? usd(health.totalStockValue) : "—" },
+    { label: "Low stock", value: health?.lowStockCount ?? "—", tone: "text-red-600", filter: "lowStock" },
+    { label: "Dead stock", value: health ? `${health.deadCount} · ${usd(health.deadValue)}` : "—", tone: "text-amber-700", filter: "dead" },
+    { label: "Overstock", value: health ? `${health.overstockCount} · ${usd(health.overstockValue)}` : "—", tone: "text-violet-700", filter: "overstock" },
   ];
 
   return (
@@ -77,10 +85,20 @@ export default function InventoryPage() {
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
         {tiles.map((t) => (
-          <div key={t.label} className="rounded-2xl border border-slate-200 bg-white p-4">
+          <button
+            key={t.label}
+            disabled={!t.filter}
+            onClick={() => t.filter && toggleFilter(t.filter)}
+            title={t.filter ? "Click to filter the product table" : undefined}
+            className={`rounded-2xl border bg-white p-4 text-left transition-colors ${
+              t.filter && classFilter === t.filter
+                ? "border-slate-900 ring-1 ring-slate-900"
+                : "border-slate-200"
+            } ${t.filter ? "cursor-pointer hover:border-slate-400" : "cursor-default"}`}
+          >
             <p className="text-xs font-medium uppercase tracking-wide text-slate-400">{t.label}</p>
             <p className={`mt-1 truncate text-2xl font-semibold ${t.tone ?? "text-slate-900"}`}>{t.value}</p>
-          </div>
+          </button>
         ))}
       </div>
 
@@ -135,6 +153,27 @@ export default function InventoryPage() {
         </div>
       )}
 
+      <div className="flex flex-wrap items-center gap-2">
+        {FILTERS.map((c) => (
+          <button
+            key={c}
+            onClick={() => setClassFilter(c)}
+            className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+              classFilter === c
+                ? "border-slate-900 bg-slate-900 text-white"
+                : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+            }`}
+          >
+            {c === "all" ? `All (${products?.length ?? 0})` : `${classLabel[c]} (${countOf(c)})`}
+          </button>
+        ))}
+        {classFilter !== "all" && (
+          <span className="text-xs text-slate-400">
+            showing {filtered?.length ?? 0} of {products?.length ?? 0}
+          </span>
+        )}
+      </div>
+
       <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
         <table className="w-full text-sm">
           <thead>
@@ -151,7 +190,14 @@ export default function InventoryPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-50">
-            {products?.map((p) => (
+            {filtered?.length === 0 && (
+              <tr>
+                <td colSpan={9} className="px-4 py-10 text-center text-slate-400">
+                  No products classified as {classFilter === "all" ? "anything" : classLabel[classFilter as StockClass]}.
+                </td>
+              </tr>
+            )}
+            {filtered?.map((p) => (
               <tr key={p.productId} className="hover:bg-slate-50/60">
                 <td className="px-4 py-2.5">
                   <Link href={`/inventory/forecast?productId=${p.productId}`} className="font-medium text-slate-800 hover:underline">
@@ -167,7 +213,7 @@ export default function InventoryPage() {
                 <td className="px-4 py-2.5 font-mono text-slate-700">{p.dailyRate.toFixed(1)}</td>
                 <td className="px-4 py-2.5 font-mono text-slate-700">{p.forecast30}</td>
                 <td className="px-4 py-2.5 text-slate-600">{p.daysUntilStockout !== null ? `${p.daysUntilStockout}d` : "—"}</td>
-                <td className="px-4 py-2.5 text-slate-600">{eur(p.stockValue)}</td>
+                <td className="px-4 py-2.5 text-slate-600">{usd(p.stockValue)}</td>
                 <td className="px-4 py-2.5">
                   <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${classStyles[p.classification]}`}>
                     {classLabel[p.classification]}

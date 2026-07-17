@@ -75,7 +75,7 @@ public sealed class ShoppingAiService(
         {
             var stock = cards.GetValueOrDefault(p.Id);
             context.AppendLine(
-                $"- {p.Name} ({p.Brand}, {p.Sku}): {p.Description} Price {p.Price:F2} EUR. "
+                $"- {p.Name} ({p.Brand}, {p.Sku}): {p.Description} Price ${p.Price:F2}. "
                 + (stock is { InStock: true } ? $"In stock ({stock.CurrentStock})." : "Currently out of stock."));
         }
 
@@ -103,9 +103,9 @@ public sealed class InventoryCopilotService(
         var snapshot = new StringBuilder();
         var health = cache.Health!;
         snapshot.AppendLine(
-            $"HEALTH: score {health.HealthScore}/100 · {health.TotalProducts} products · stock value {health.TotalStockValue:F0} EUR · "
-            + $"low stock {health.LowStockCount} · dead {health.DeadCount} (value {health.DeadValue:F0} EUR) · "
-            + $"overstock {health.OverstockCount} (value {health.OverstockValue:F0} EUR) · fast movers {health.FastCount} · slow movers {health.SlowCount}");
+            $"HEALTH: score {health.HealthScore}/100 · {health.TotalProducts} products · stock value ${health.TotalStockValue:F0} · "
+            + $"low stock {health.LowStockCount} · dead {health.DeadCount} (value ${health.DeadValue:F0}) · "
+            + $"overstock {health.OverstockCount} (value ${health.OverstockValue:F0}) · fast movers {health.FastCount} · slow movers {health.SlowCount}");
 
         void Section(string title, IEnumerable<InventoryProductRow> rows, Func<InventoryProductRow, string> line)
         {
@@ -122,7 +122,7 @@ public sealed class InventoryCopilotService(
                + (r.DaysUntilStockout is { } d ? $", ~{d} days to stockout" : ""));
         Section("DEAD STOCK (no sales in 60d)",
             cache.Rows.Where(r => r.Classification == StockClass.Dead),
-            r => $"{r.Name} [{r.Sku}] {r.Brand}: {r.CurrentStock} units, {r.StockValue:F0} EUR locked");
+            r => $"{r.Name} [{r.Sku}] {r.Brand}: {r.CurrentStock} units, ${r.StockValue:F0} locked");
         Section("OVERSTOCK",
             cache.Rows.Where(r => r.Classification == StockClass.Overstock),
             r => $"{r.Name} [{r.Sku}] {r.Brand}: {r.CurrentStock} units vs {r.DailyRate:F1}/day demand");

@@ -1,4 +1,5 @@
-import Link from "next/link";
+import { NotificationsBell } from "@/components/notifications-bell";
+import { StatusPill } from "@/components/status-pill";
 import {
   BarChart3,
   Boxes,
@@ -7,19 +8,22 @@ import {
   Settings,
   ShoppingCart,
 } from "lucide-react";
-import { StatusPill } from "@/components/status-pill";
-import { NotificationsBell } from "@/components/notifications-bell";
+import Link from "next/link";
 
 const nav = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/support", label: "Support AI", icon: MessageSquareText },
   { href: "/inventory", label: "Inventory AI", icon: Boxes },
   { href: "/shopping", label: "Shopping AI", icon: ShoppingCart },
-  { href: "/analytics", label: "Analytics", icon: BarChart3, phase: "Later" },
-  { href: "/settings", label: "Settings", icon: Settings, phase: "Phase 4" },
+  { href: "/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/settings", label: "Settings", icon: Settings  },
 ];
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <div className="flex min-h-screen">
       <aside className="fixed inset-y-0 w-56 border-r border-slate-800 bg-slate-950 text-slate-300">
@@ -27,21 +31,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500 text-sm font-bold text-slate-950">
             C
           </span>
-          <span className="text-sm font-semibold tracking-wide text-white">CommercePilot</span>
+          <span className="text-sm font-semibold tracking-wide text-white">
+            Commerce
+          </span>
         </div>
         <nav className="mt-2 space-y-0.5 px-3">
-          {nav.map(({ href, label, icon: Icon, phase }) =>
-            phase ? (
-              <span
-                key={href}
-                className="flex cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-600"
-                title={`Coming in ${phase}`}
-              >
-                <Icon size={16} />
-                {label}
-                <span className="ml-auto text-[10px] uppercase tracking-wide">{phase}</span>
-              </span>
-            ) : (
+          {nav.map(({ href, label, icon: Icon }) => (
               <Link
                 key={href}
                 href={href}
