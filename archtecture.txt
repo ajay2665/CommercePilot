@@ -1,0 +1,643 @@
+You are a Principal Software Architect and Senior AI Engineer.
+
+Your task is to design and implement an enterprise-grade AI Commerce Platform.
+
+Technology Stack
+
+Backend
+- .NET 9
+- FastEndpoints
+- Entity Framework Core
+- PostgreSQL
+- pgvector
+- Redis
+- RabbitMQ
+- Clean Architecture
+- CQRS
+- OpenAI API
+- text-embedding-3-small
+- GPT-5
+
+Frontend
+- Next.js 15
+- TypeScript
+- Tailwind CSS
+- Shadcn/UI
+- TanStack Query
+- Zustand
+- React Hook Form
+- Chart.js or ECharts
+
+==================================================
+PROJECT GOAL
+==================================================
+
+Build an AI-first Commerce Platform consisting of three intelligent modules:
+
+1. Shopping AI
+2. Inventory AI
+3. Customer Support AI
+
+The system should be modular, scalable, event-driven, and production-ready.
+
+This is NOT a chatbot application.
+
+Each AI module should act as an intelligent business service capable of making recommendations, predictions, and automating workflows.
+
+==================================================
+SYSTEM ARCHITECTURE
+==================================================
+
+                    Commerce Brain
+                          │
+                  AI Orchestrator
+                          │
+        ┌─────────────────┼──────────────────┐
+        │                 │                  │
+   Shopping AI      Inventory AI     Support AI
+        │                 │                  │
+        └─────────────────┼──────────────────┘
+                          │
+                 Shared Infrastructure
+
+==================================================
+BACKEND ARCHITECTURE
+==================================================
+
+Use Clean Architecture.
+
+Projects
+
+Commerce.Api
+Commerce.Application
+Commerce.Domain
+Commerce.Infrastructure
+Commerce.Shared
+
+Use FastEndpoints instead of Controllers.
+
+Every feature should contain
+
+Features
+    Shopping
+        SearchProducts
+        RecommendProducts
+        CompareProducts
+
+    Inventory
+        ForecastDemand
+        ReorderSuggestions
+        InventoryHealth
+
+    Support
+        AskSupport
+        CreateTicket
+        TicketClassification
+
+Each feature should contain
+
+Endpoint
+
+Request
+
+Response
+
+Validator
+
+Handler
+
+Repository
+
+Specification (if required)
+
+==================================================
+SHOPPING AI
+==================================================
+
+Implement
+
+1. Semantic Product Search
+
+Use embeddings and vector search.
+
+Customers should search naturally.
+
+Examples
+
+"I need a gaming laptop under $1200"
+
+"Best running shoes for beginners"
+
+------------------------------------------------
+
+2. Product Recommendation
+
+Recommend products using
+
+Purchase History
+
+Browsing History
+
+Product Similarity
+
+Frequently Bought Together
+
+Inventory Availability
+
+Trending Products
+
+------------------------------------------------
+
+3. AI Shopping Assistant
+
+Use RAG over
+
+Product Catalog
+
+Product Manuals
+
+Reviews
+
+Specifications
+
+FAQs
+
+Allow questions like
+
+Compare products
+
+Explain features
+
+Recommend products
+
+==================================================
+INVENTORY AI
+==================================================
+
+Implement
+
+1. Demand Forecasting
+
+Predict
+
+7 Days
+
+30 Days
+
+90 Days
+
+Use
+
+Historical Sales
+
+Seasonality
+
+Current Trends
+
+Promotions
+
+------------------------------------------------
+
+2. Smart Reorder Engine
+
+Recommend
+
+When to reorder
+
+How much to order
+
+Supplier selection
+
+Based on
+
+Current Stock
+
+Safety Stock
+
+Lead Time
+
+Demand Forecast
+
+------------------------------------------------
+
+3. Inventory Health
+
+Generate AI insights
+
+Fast Moving
+
+Slow Moving
+
+Dead Stock
+
+Overstock
+
+Low Stock
+
+Inventory Value
+
+Inventory Health Score
+
+------------------------------------------------
+
+4. Predictive Alerts
+
+Examples
+
+Low Stock
+
+Dead Stock
+
+Supplier Delay
+
+Inventory Risk
+
+------------------------------------------------
+
+5. Inventory Copilot
+
+Natural language questions
+
+"What should I reorder today?"
+
+"Show dead stock"
+
+"What products will run out next week?"
+
+==================================================
+CUSTOMER SUPPORT AI
+==================================================
+
+Implement
+
+1. AI Chat
+
+Use RAG over
+
+FAQs
+
+Policies
+
+Knowledge Base
+
+Product Manuals
+
+Shipping Information
+
+------------------------------------------------
+
+2. Ticket Classification
+
+Automatically classify
+
+Refund
+
+Shipping
+
+Warranty
+
+Technical
+
+Payment
+
+Complaint
+
+------------------------------------------------
+
+3. AI Draft Replies
+
+Generate responses for agents.
+
+Agent approval required.
+
+------------------------------------------------
+
+4. Sentiment Analysis
+
+Positive
+
+Neutral
+
+Negative
+
+Urgent
+
+Escalate urgent tickets.
+
+==================================================
+COMMERCE BRAIN
+==================================================
+
+Shared by every AI module.
+
+Contains
+
+Products
+
+Categories
+
+Customers
+
+Orders
+
+Inventory
+
+Suppliers
+
+Warehouses
+
+Support Tickets
+
+Policies
+
+FAQs
+
+Reviews
+
+Embeddings
+
+Knowledge Base
+
+==================================================
+AI PIPELINE
+==================================================
+
+Document Ingestion
+
+↓
+
+Chunking
+
+↓
+
+Metadata
+
+↓
+
+Embedding Generation
+
+↓
+
+Vector Database
+
+↓
+
+Semantic Search
+
+↓
+
+Context Builder
+
+↓
+
+Prompt Builder
+
+↓
+
+GPT-5
+
+↓
+
+Response
+
+==================================================
+DATABASE
+==================================================
+
+PostgreSQL
+
+Tables
+
+Products
+
+Categories
+
+Customers
+
+Orders
+
+OrderItems
+
+Inventory
+
+Warehouses
+
+Suppliers
+
+PurchaseOrders
+
+SupportTickets
+
+KnowledgeArticles
+
+Embeddings
+
+AuditLogs
+
+==================================================
+VECTOR DATABASE
+==================================================
+
+Use pgvector.
+
+Embed
+
+Products
+
+Product Manuals
+
+Support Articles
+
+FAQs
+
+Policies
+
+Reviews
+
+==================================================
+EVENTS
+==================================================
+
+Use RabbitMQ.
+
+Examples
+
+StockLow
+
+OrderCreated
+
+OrderCompleted
+
+TicketCreated
+
+ProductViewed
+
+PurchaseCompleted
+
+ReviewAdded
+
+==================================================
+NEXT.JS APPLICATION
+==================================================
+
+Create a modern dashboard.
+
+Pages
+
+Dashboard
+
+Shopping AI
+
+Inventory AI
+
+Support AI
+
+Products
+
+Inventory
+
+Orders
+
+Customers
+
+Analytics
+
+Settings
+
+==================================================
+SHOPPING AI UI
+==================================================
+
+Semantic Search
+
+Recommendation Cards
+
+Product Comparison
+
+AI Assistant Chat
+
+Trending Products
+
+Recently Viewed
+
+==================================================
+INVENTORY UI
+==================================================
+
+Inventory Health Dashboard
+
+Forecast Charts
+
+Low Stock
+
+Dead Stock
+
+Reorder Suggestions
+
+Inventory Copilot
+
+Predictive Alerts
+
+Supplier Performance
+
+==================================================
+SUPPORT UI
+==================================================
+
+Support Chat
+
+Tickets
+
+Ticket Details
+
+AI Suggested Replies
+
+Knowledge Search
+
+Customer Sentiment
+
+==================================================
+DASHBOARDS
+==================================================
+
+Executive Dashboard
+
+Inventory Dashboard
+
+Shopping Dashboard
+
+Support Dashboard
+
+AI Usage Dashboard
+
+==================================================
+AUTHENTICATION
+==================================================
+
+JWT
+
+Refresh Tokens
+
+Role Based Authorization
+
+Admin
+
+Inventory Manager
+
+Warehouse Staff
+
+Support Agent
+
+Customer
+
+==================================================
+OBSERVABILITY
+==================================================
+
+Track
+
+Prompt Version
+
+Model Used
+
+Latency
+
+Cost
+
+Token Usage
+
+Feedback
+
+Hallucinations
+
+==================================================
+OUTPUT
+==================================================
+
+Generate
+
+1. Complete Solution Architecture
+
+2. Folder Structure
+
+3. FastEndpoints Feature Structure
+
+4. Database Schema
+
+5. API Endpoints
+
+6. Event Flow
+
+7. AI Workflow
+
+8. Sequence Diagrams
+
+9. Next.js Folder Structure
+
+10. UI Wireframes
+
+11. Development Roadmap
+
+12. Future Enhancements
+
+Design the solution as a production-ready SaaS platform with enterprise best practices, ensuring that new AI modules such as Pricing AI, Warehouse AI, and Marketing AI can be added without changing the core architecture.

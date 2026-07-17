@@ -1,0 +1,14 @@
+# .NET
+bin/
+obj/
+*.user
+.vs/
+appsettings.Development.json
+
+# Next.js (web/ has its own .gitignore; safety net)
+node_modules/
+.next/
+
+# OS
+Thumbs.db
+.DS_Store
