@@ -13,8 +13,8 @@ import { NotificationsBell } from "@/components/notifications-bell";
 const nav = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/support", label: "Support AI", icon: MessageSquareText },
-  { href: "/inventory", label: "Inventory AI", icon: Boxes, phase: "Phase 2" },
-  { href: "/shopping", label: "Shopping AI", icon: ShoppingCart, phase: "Phase 3" },
+  { href: "/inventory", label: "Inventory AI", icon: Boxes },
+  { href: "/shopping", label: "Shopping AI", icon: ShoppingCart },
   { href: "/analytics", label: "Analytics", icon: BarChart3, phase: "Later" },
   { href: "/settings", label: "Settings", icon: Settings, phase: "Phase 4" },
 ];

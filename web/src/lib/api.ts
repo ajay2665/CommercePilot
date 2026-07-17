@@ -94,3 +94,133 @@ export const api = {
 };
 
 export const BRANDS = ["Aurora Audio", "Peak Outdoors", "Luma Beauty", "Nordic Home", "VoltEdge"];
+
+// ── Inventory pod (Phase 2) ──────────────────────────────────────────────────
+
+export type StockClass = "healthy" | "fast" | "slow" | "dead" | "overstock" | "lowStock";
+
+export interface InventoryRow {
+  productId: string;
+  sku: string;
+  name: string;
+  brand: string;
+  price: number;
+  currentStock: number;
+  safetyStock: number;
+  reorderPoint: number;
+  leadTimeDays: number;
+  dailyRate: number;
+  forecast30: number;
+  daysUntilStockout: number | null;
+  classification: StockClass;
+  stockValue: number;
+}
+
+export interface HealthSummary {
+  healthScore: number;
+  totalProducts: number;
+  totalStockValue: number;
+  fastCount: number;
+  slowCount: number;
+  deadCount: number;
+  overstockCount: number;
+  lowStockCount: number;
+  deadValue: number;
+  overstockValue: number;
+  generatedAt: string;
+}
+
+export interface SeriesPoint {
+  date: string;
+  units: number;
+}
+
+export interface ForecastSeries {
+  productId: string;
+  sku: string;
+  name: string;
+  brand: string;
+  history: SeriesPoint[];
+  forecast: SeriesPoint[];
+  dailyRate: number;
+  confidence: number;
+  horizonDays: number;
+}
+
+export interface InventoryAlert {
+  id: string;
+  productId: string;
+  type: "lowStock" | "stockoutRisk" | "deadStock" | "overstock";
+  severity: "info" | "warning" | "critical";
+  message: string;
+  acknowledged: boolean;
+  createdAt: string;
+}
+
+export interface ReorderSuggestion {
+  id: string;
+  productId: string;
+  supplierId: string | null;
+  quantity: number;
+  orderByDate: string;
+  rationale: string;
+  generatedAt: string;
+}
+
+// ── Shopping pod (Phase 3) ───────────────────────────────────────────────────
+
+export interface ShopProductCard {
+  productId: string;
+  sku: string;
+  name: string;
+  brand: string;
+  price: number;
+  inStock: boolean;
+  currentStock: number;
+  score: number;
+  reason: string;
+}
+
+export interface CustomerLite {
+  id: string;
+  name: string;
+  email: string;
+}
+
+export interface AssistantAnswer {
+  answer: string;
+  sources: { title: string; kind: string }[];
+}
+
+export const podApi = {
+  inventoryProducts: () => request<InventoryRow[]>("/api/inventory/products"),
+  inventoryHealth: () => request<HealthSummary>("/api/inventory/health"),
+  inventoryForecast: (productId: string, horizon: number) =>
+    request<ForecastSeries>(`/api/inventory/forecast?productId=${productId}&horizon=${horizon}`),
+  inventoryAlerts: (unacknowledgedOnly: boolean) =>
+    request<InventoryAlert[]>(`/api/inventory/alerts?unacknowledgedOnly=${unacknowledgedOnly}`),
+  ackInventoryAlert: (id: string) => request<void>(`/api/inventory/alerts/${id}/ack`, { method: "POST" }),
+  reorderSuggestions: () => request<ReorderSuggestion[]>("/api/inventory/reorder-suggestions"),
+  copilot: (question: string) =>
+    request<{ answer: string }>("/api/inventory/copilot", {
+      method: "POST",
+      body: JSON.stringify({ question }),
+    }),
+
+  shoppingSearch: (q: string) =>
+    request<ShopProductCard[]>(`/api/shopping/search?q=${encodeURIComponent(q)}`),
+  recommendations: (customerId: string) =>
+    request<ShopProductCard[]>(`/api/shopping/recommendations?customerId=${customerId}`),
+  trending: () => request<ShopProductCard[]>("/api/shopping/trending"),
+  customers: () => request<CustomerLite[]>("/api/shopping/customers"),
+  assistant: (question: string) =>
+    request<AssistantAnswer>("/api/shopping/assistant", {
+      method: "POST",
+      body: JSON.stringify({ question }),
+    }),
+  compare: (productIds: string[]) =>
+    request<{ comparison: string }>("/api/shopping/compare", {
+      method: "POST",
+      body: JSON.stringify({ productIds }),
+    }),
+};

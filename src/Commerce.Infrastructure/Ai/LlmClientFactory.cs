@@ -14,6 +14,9 @@ public sealed class LlmOptions
 
     /// <summary>Per-request HTTP timeout. Local CPU inference with a cold model can take minutes.</summary>
     public int TimeoutSeconds { get; set; } = 600;
+
+    /// <summary>Ping the local model every few minutes so it stays loaded (ollama only).</summary>
+    public bool KeepWarm { get; set; } = true;
 }
 
 public static class LlmClientFactory

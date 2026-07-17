@@ -10,9 +10,12 @@ Architecture and roadmap: [md/01-architecture.md](md/01-architecture.md) · Pod 
 |---|---|---|
 | 0 | Solution scaffold, EF migrations, event bus, LLM factory, Next.js shell | ✅ done |
 | 1a | Support AI core: intake → LLM triage → routing → notifications → dashboard | ✅ done |
-| 1b | Draft replies + human approval (HITL), KB RAG chat, AI usage page | next |
-| 2 | Inventory AI (sync/seed, forecasts, alerts, copilot) | planned |
-| 3 | Shopping AI (events, recommendations, semantic search, assistant) | planned |
+| 2 | Inventory AI: forecasts (moving avg), health score, predictive alerts, reorder engine, copilot | ✅ done |
+| 3 | Shopping AI: semantic search (nomic embeddings), co-purchase recommendations, trending, cart recovery, RAG assistant, compare | ✅ done |
+| 1b | Support draft replies + human approval (HITL), KB RAG chat page, AI usage page | next |
+| 4 | JWT/RBAC, Slack/Gmail/Shopify toggles, RabbitMQ/Redis at deployment | planned |
+
+Pod pages: **/inventory** (health, alerts, reorders, product table) · **/inventory/forecast** (chart) · **/inventory/copilot** · **/shopping** (semantic search, recommendations, trending) · **/shopping/assistant** (RAG with cited sources).
 
 ## Run it
 

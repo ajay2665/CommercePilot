@@ -19,6 +19,13 @@ public sealed class CommerceDbContext(DbContextOptions<CommerceDbContext> option
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<Ticket> Tickets => Set<Ticket>();
     public DbSet<RoutingRule> RoutingRules => Set<RoutingRule>();
+    public DbSet<StockMovement> StockMovements => Set<StockMovement>();
+    public DbSet<DemandForecast> DemandForecasts => Set<DemandForecast>();
+    public DbSet<InventoryAlert> InventoryAlerts => Set<InventoryAlert>();
+    public DbSet<ReorderSuggestion> ReorderSuggestions => Set<ReorderSuggestion>();
+    public DbSet<CustomerEvent> CustomerEvents => Set<CustomerEvent>();
+    public DbSet<Recommendation> Recommendations => Set<Recommendation>();
+    public DbSet<AbandonedCart> AbandonedCarts => Set<AbandonedCart>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -89,6 +96,39 @@ public sealed class CommerceDbContext(DbContextOptions<CommerceDbContext> option
             e.HasIndex(t => t.Brand);
             e.HasIndex(t => t.CreatedAt);
         });
+
+        b.Entity<StockMovement>(e =>
+        {
+            e.Property(m => m.Reason).HasMaxLength(32);
+            e.Property(m => m.Source).HasMaxLength(32);
+            e.HasIndex(m => new { m.ProductId, m.Timestamp });
+        });
+
+        b.Entity<DemandForecast>(e => e.HasIndex(f => new { f.ProductId, f.HorizonDays }));
+
+        b.Entity<InventoryAlert>(e =>
+        {
+            e.Property(a => a.Type).HasConversion<string>().HasMaxLength(32);
+            e.Property(a => a.Severity).HasConversion<string>().HasMaxLength(32);
+            e.HasIndex(a => new { a.ProductId, a.Type, a.Acknowledged });
+        });
+
+        b.Entity<ReorderSuggestion>(e => e.HasIndex(r => r.ProductId));
+
+        b.Entity<CustomerEvent>(e =>
+        {
+            e.Property(c => c.EventType).HasConversion<string>().HasMaxLength(16);
+            e.HasIndex(c => c.CustomerId);
+            e.HasIndex(c => c.ProductId);
+        });
+
+        b.Entity<Recommendation>(e =>
+        {
+            e.Property(r => r.Source).HasMaxLength(32);
+            e.HasIndex(r => r.CustomerId);
+        });
+
+        b.Entity<AbandonedCart>(e => e.HasIndex(c => new { c.RecoveryEmailSent, c.LastActiveAt }));
 
         b.Entity<RoutingRule>(e =>
         {

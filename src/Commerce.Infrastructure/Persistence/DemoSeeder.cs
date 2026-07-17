@@ -1,5 +1,6 @@
 using Commerce.Domain;
 using Commerce.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace Commerce.Infrastructure.Persistence;
 
@@ -64,14 +65,27 @@ public static class DemoSeeder
             .ToList();
 
         // ── Orders: 120 days of history, weekend bump, per-product popularity ──
+        // Weighted sampling (not max-draw) so the long tail sells too — otherwise
+        // a handful of bestsellers absorb every order and the rest look dead.
         var popularity = products.ToDictionary(p => p.Id, _ => rnd.NextDouble() + 0.2);
+        double totalPopularity = popularity.Values.Sum();
+        Product PickWeighted()
+        {
+            double r = rnd.NextDouble() * totalPopularity;
+            foreach (var p in products)
+            {
+                r -= popularity[p.Id];
+                if (r <= 0) return p;
+            }
+            return products[^1];
+        }
         var orders = new List<Order>();
         DateTimeOffset today = DateTimeOffset.UtcNow.Date;
         for (int day = 120; day >= 1; day--)
         {
             DateTimeOffset date = today.AddDays(-day);
             bool weekend = date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
-            int orderCount = rnd.Next(1, 4) + (weekend ? 2 : 0);
+            int orderCount = rnd.Next(4, 9) + (weekend ? 3 : 0);
 
             for (int i = 0; i < orderCount; i++)
             {
@@ -84,9 +98,7 @@ public static class DemoSeeder
                 int itemCount = rnd.Next(1, 4);
                 for (int j = 0; j < itemCount; j++)
                 {
-                    var product = products
-                        .OrderByDescending(p => popularity[p.Id] * rnd.NextDouble())
-                        .First();
+                    var product = PickWeighted();
                     order.Items.Add(new OrderItem
                     {
                         OrderId = order.Id,
@@ -116,7 +128,7 @@ public static class DemoSeeder
         {
             ProductId = p.Id,
             WarehouseId = warehouses[rnd.Next(warehouses.Count)].Id,
-            CurrentStock = rnd.Next(5, 200),
+            CurrentStock = rnd.Next(15, 90),
             SafetyStock = 10,
             ReorderPoint = 25,
             LeadTimeDays = rnd.Next(7, 21),
@@ -190,6 +202,167 @@ public static class DemoSeeder
         db.InventoryLevels.AddRange(inventory);
         db.RoutingRules.AddRange(rules);
         db.KnowledgeArticles.AddRange(articles);
+        await db.SaveChangesAsync(ct);
+    }
+
+    /// <summary>
+    /// Phase 2/3 backfill — runs whenever StockMovements is empty (fresh DB or
+    /// upgrade of a Phase-1 DB). Derives stock movements and customer events
+    /// from the seeded orders, and forces a few demo-worthy inventory states
+    /// (guaranteed dead stock, overstock, low stock) so dashboards have content.
+    /// </summary>
+    public static async Task SeedPodDataAsync(CommerceDbContext db, CancellationToken ct = default)
+    {
+        var rnd = new Random(7);
+        var products = await db.Products.ToListAsync(ct);
+        var inventory = await db.InventoryLevels.ToListAsync(ct);
+        var orders = await db.Orders.Include(o => o.Items).OrderBy(o => o.CreatedAt).ToListAsync(ct);
+
+        // ── Guaranteed dead stock: a product with inventory but zero sales ──
+        if (!await db.Products.AnyAsync(p => p.Sku == "NOR-199", ct))
+        {
+            var legacy = new Product
+            {
+                Brand = "Nordic Home",
+                Sku = "NOR-199",
+                Name = "Cable Organizer Box (discontinued)",
+                Description = "Legacy cable organizer box by Nordic Home. No longer promoted.",
+                CategoryId = products.FirstOrDefault(p => p.Brand == "Nordic Home")?.CategoryId,
+                Price = 19.95m,
+                CreatedAt = DateTimeOffset.UtcNow.AddDays(-120),
+            };
+            db.Products.Add(legacy);
+            db.InventoryLevels.Add(new InventoryLevel
+            {
+                ProductId = legacy.Id,
+                CurrentStock = 64,
+                SafetyStock = 10,
+                ReorderPoint = 25,
+                LeadTimeDays = 14,
+            });
+            products.Add(legacy);
+        }
+
+        // ── Forced demo states: two low-stock, one overstock ────────────────
+        var byRate = orders.SelectMany(o => o.Items)
+            .GroupBy(i => i.ProductId)
+            .ToDictionary(g => g.Key, g => g.Sum(i => i.Quantity));
+        var sellers = inventory
+            .Where(i => byRate.ContainsKey(i.ProductId))
+            .OrderByDescending(i => byRate[i.ProductId])
+            .ToList();
+
+        void ForceStock(InventoryLevel level, int stock, string why)
+        {
+            if (level.CurrentStock == stock) return;
+            db.StockMovements.Add(new StockMovement
+            {
+                ProductId = level.ProductId,
+                Delta = stock - level.CurrentStock,
+                Reason = "correction",
+                Source = "seed",
+                Timestamp = DateTimeOffset.UtcNow.AddHours(-2),
+            });
+            level.CurrentStock = stock;
+        }
+
+        if (sellers.Count >= 4)
+        {
+            ForceStock(sellers[0], 8, "low stock demo");   // best seller nearly out
+            ForceStock(sellers[2], 14, "low stock demo");
+            ForceStock(sellers[^1], 480, "overstock demo"); // slow seller drowning in stock
+        }
+
+        // ── Stock movements derived from order history + monthly restocks ───
+        foreach (var order in orders)
+        {
+            foreach (var item in order.Items)
+            {
+                db.StockMovements.Add(new StockMovement
+                {
+                    ProductId = item.ProductId,
+                    Delta = -item.Quantity,
+                    Reason = "sale",
+                    Source = "order",
+                    Timestamp = order.CreatedAt,
+                });
+            }
+        }
+        foreach (var product in products)
+        {
+            for (int daysAgo = 110; daysAgo > 0; daysAgo -= 30)
+            {
+                db.StockMovements.Add(new StockMovement
+                {
+                    ProductId = product.Id,
+                    Delta = rnd.Next(30, 80),
+                    Reason = "restock",
+                    Source = "seed",
+                    Timestamp = DateTimeOffset.UtcNow.AddDays(-daysAgo),
+                });
+            }
+        }
+
+        // ── Customer events: purchases from orders + synthetic views/carts ──
+        foreach (var order in orders)
+        {
+            foreach (var item in order.Items)
+            {
+                db.CustomerEvents.Add(new CustomerEvent
+                {
+                    CustomerId = order.CustomerId,
+                    ProductId = item.ProductId,
+                    EventType = ShopEventType.Purchase,
+                    CreatedAt = order.CreatedAt,
+                });
+                int views = rnd.Next(2, 6);
+                for (int v = 0; v < views; v++)
+                {
+                    db.CustomerEvents.Add(new CustomerEvent
+                    {
+                        CustomerId = order.CustomerId,
+                        ProductId = item.ProductId,
+                        EventType = ShopEventType.View,
+                        CreatedAt = order.CreatedAt.AddHours(-rnd.Next(1, 72)),
+                    });
+                }
+                if (rnd.NextDouble() < 0.5)
+                {
+                    db.CustomerEvents.Add(new CustomerEvent
+                    {
+                        CustomerId = order.CustomerId,
+                        ProductId = item.ProductId,
+                        EventType = ShopEventType.Cart,
+                        CreatedAt = order.CreatedAt.AddMinutes(-rnd.Next(10, 300)),
+                    });
+                }
+            }
+        }
+
+        // ── Abandoned carts: recent cart activity, no purchase, ripe for recovery ──
+        var customers = await db.Customers.Take(10).ToListAsync(ct);
+        for (int i = 0; i < 3 && i < customers.Count; i++)
+        {
+            var cartProducts = products.OrderBy(_ => rnd.Next()).Take(rnd.Next(1, 3)).ToList();
+            DateTimeOffset lastActive = DateTimeOffset.UtcNow.AddHours(-rnd.Next(6, 30));
+            foreach (var p in cartProducts)
+            {
+                db.CustomerEvents.Add(new CustomerEvent
+                {
+                    CustomerId = customers[i].Id,
+                    ProductId = p.Id,
+                    EventType = ShopEventType.Cart,
+                    CreatedAt = lastActive,
+                });
+            }
+            db.AbandonedCarts.Add(new AbandonedCart
+            {
+                CustomerId = customers[i].Id,
+                ProductIdsJson = System.Text.Json.JsonSerializer.Serialize(cartProducts.Select(p => p.Id)),
+                LastActiveAt = lastActive,
+            });
+        }
+
         await db.SaveChangesAsync(ct);
     }
 }

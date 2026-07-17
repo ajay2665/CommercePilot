@@ -3,9 +3,11 @@ using Commerce.Application.Events;
 using Commerce.Application.Features.Support;
 using Commerce.Application.Options;
 using Commerce.Infrastructure.Ai;
+using Commerce.Infrastructure.Inventory;
 using Commerce.Infrastructure.Messaging;
 using Commerce.Infrastructure.Notifications;
 using Commerce.Infrastructure.Persistence;
+using Commerce.Infrastructure.Shopping;
 using Commerce.Infrastructure.Support;
 using Commerce.Infrastructure.Workers;
 using Microsoft.EntityFrameworkCore;
@@ -30,6 +32,8 @@ public static class DependencyInjection
         // ── Options ─────────────────────────────────────────────────────────
         services.Configure<LlmOptions>(config.GetSection("Llm"));
         services.Configure<SupportOptions>(config.GetSection("Support"));
+        services.Configure<InventoryOptions>(config.GetSection("Inventory"));
+        services.Configure<ShoppingOptions>(config.GetSection("Shopping"));
 
         // ── Messaging: in-process bus + intake queue (decision 3) ───────────
         services.AddSingleton<InProcessEventBus>();
@@ -51,6 +55,27 @@ public static class DependencyInjection
         services.AddScoped<TriageProcessor>();
         services.AddSingleton<TriageStatus>();
         services.AddHostedService<TriageWorker>();
+
+        // ── Inventory pod (Phase 2) ─────────────────────────────────────────
+        services.AddSingleton<InventorySnapshotCache>();
+        services.AddScoped<InventoryAnalysisService>();
+        services.AddScoped<IInventoryQueries, InventoryQueries>();
+        services.AddScoped<IEventHandler<StockLow>, StockLowNotificationHandler>();
+        services.AddScoped<IInventoryCopilot, InventoryCopilotService>();
+        services.AddHostedService<InventoryAnalysisWorker>();
+
+        // ── Shopping pod (Phase 3) ──────────────────────────────────────────
+        services.AddScoped<ShoppingQueries>();
+        services.AddScoped<IShoppingQueries>(sp => sp.GetRequiredService<ShoppingQueries>());
+        services.AddScoped<IShoppingAi, ShoppingAiService>();
+        services.AddHostedService<RecommendationWorker>();
+        services.AddHostedService<CartRecoveryWorker>();
+
+        // ── Shared AI: chat runner + embeddings/vector search ───────────────
+        services.AddScoped<LlmRunner>();
+        services.AddSingleton<EmbeddingService>();
+        services.AddHostedService<EmbeddingWarmupWorker>();
+        services.AddHostedService<ModelKeepWarmWorker>();
 
         return services;
     }
