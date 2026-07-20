@@ -1,3 +1,4 @@
+import { AiChatLauncher } from "@/components/ai-chat-panel";
 import { NotificationsBell } from "@/components/notifications-bell";
 import { StatusPill } from "@/components/status-pill";
 import {
@@ -57,6 +58,7 @@ export default function DashboardLayout({
 
       <div className="ml-56 flex-1">
         <header className="sticky top-0 z-40 flex items-center justify-end gap-3 border-b border-slate-200 bg-white/80 px-6 py-3 backdrop-blur">
+          <AiChatLauncher />
           <StatusPill />
           <NotificationsBell />
         </header>

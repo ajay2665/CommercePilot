@@ -33,7 +33,7 @@ public sealed class LlmRunner(
             new(ChatRole.System, systemPrompt),
             new(ChatRole.User, userPrompt),
         ];
-        var options = new ChatOptions { Temperature = 0.3f };
+        var options = new ChatOptions();
 
         for (int attempt = 1; attempt <= MaxAttempts; attempt++)
         {

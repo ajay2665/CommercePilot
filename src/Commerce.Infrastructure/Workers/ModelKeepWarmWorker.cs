@@ -19,8 +19,7 @@ public sealed class ModelKeepWarmWorker(
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        if (!options.Value.KeepWarm ||
-            !string.Equals(options.Value.Provider, "ollama", StringComparison.OrdinalIgnoreCase))
+        if (!options.Value.Ollama.KeepWarm || !options.Value.IsOllamaChat)
             return;
 
         var ping = new ChatOptions { MaxOutputTokens = 1 };

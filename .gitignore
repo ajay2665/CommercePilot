@@ -3,7 +3,6 @@ bin/
 obj/
 *.user
 .vs/
-appsettings.Development.json
 
 # Next.js (web/ has its own .gitignore; safety net)
 node_modules/

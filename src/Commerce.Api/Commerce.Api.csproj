@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <ItemGroup>
     <ProjectReference Include="..\Commerce.Application\Commerce.Application.csproj" />
@@ -17,6 +17,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>b1674f1d-9b59-4e3a-aebb-7a0a11c3ef2f</UserSecretsId>
   </PropertyGroup>
 
 </Project>

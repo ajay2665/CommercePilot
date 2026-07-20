@@ -155,10 +155,11 @@ public sealed class EmbeddingService(
     /// <summary>
     /// 768 dims everywhere (architecture §3.5): nomic-embed-text is 768 natively;
     /// text-embedding-3-small is asked to truncate to 768 so both providers share
-    /// one comparable vector space and schema.
+    /// one comparable vector space and schema, and existing stored vectors stay
+    /// valid across an Llm:EmbeddingProvider switch.
     /// </summary>
     private EmbeddingGenerationOptions? GenerationOptions()
-        => options.Value.IsOllama ? null : new EmbeddingGenerationOptions { Dimensions = 768 };
+        => options.Value.IsEmbeddingOllama ? null : new EmbeddingGenerationOptions { Dimensions = 768 };
 
     private static string TitleFrom(string metadataJson) => FieldFrom(metadataJson, "title") ?? "";
 

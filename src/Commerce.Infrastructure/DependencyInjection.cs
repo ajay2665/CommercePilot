@@ -3,9 +3,12 @@ using Commerce.Application.Events;
 using Commerce.Application.Features.Support;
 using Commerce.Application.Options;
 using Commerce.Infrastructure.Ai;
+using Commerce.Infrastructure.Dashboard;
 using Commerce.Infrastructure.Inventory;
 using Commerce.Infrastructure.Messaging;
 using Commerce.Infrastructure.Notifications;
+using Commerce.Infrastructure.Orchestrator;
+using Commerce.Infrastructure.Orchestrator.Agents;
 using Commerce.Infrastructure.Persistence;
 using Commerce.Infrastructure.Shopping;
 using Commerce.Infrastructure.Support;
@@ -70,6 +73,20 @@ public static class DependencyInjection
         services.AddScoped<IShoppingAi, ShoppingAiService>();
         services.AddHostedService<RecommendationWorker>();
         services.AddHostedService<CartRecoveryWorker>();
+
+        // ── Executive dashboard (Phase 4) ───────────────────────────────────
+        services.AddScoped<IDashboardQueries, DashboardQueries>();
+
+        // ── Global orchestrator: AI command center (Phase 4) ────────────────
+        services.AddSingleton<ConversationMemory>();
+        services.AddScoped<IIntentClassifier, IntentClassifier>();
+        services.AddScoped<IGlobalKnowledgeBase, GlobalKnowledgeBase>();
+        services.AddScoped<IBusinessAgent, SalesAgent>();
+        services.AddScoped<IBusinessAgent, InventoryAgent>();
+        services.AddScoped<IBusinessAgent, SupportAgent>();
+        services.AddScoped<IBusinessAgent, ShoppingAgent>();
+        services.AddScoped<IBusinessAgent, DashboardAgent>();
+        services.AddScoped<IGlobalOrchestrator, GlobalOrchestrator>();
 
         // ── Shared AI: chat runner + embeddings/vector search ───────────────
         services.AddScoped<LlmRunner>();

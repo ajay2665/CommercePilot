@@ -224,3 +224,164 @@ export const podApi = {
       body: JSON.stringify({ productIds }),
     }),
 };
+
+// ── Executive dashboard (Phase 4) ────────────────────────────────────────────
+
+export interface SalesBucket {
+  date: string;
+  revenue: number;
+  orders: number;
+}
+
+export interface DashboardSummary {
+  revenue: number;
+  revenuePrior: number;
+  revenueGrowthPct: number;
+  orderCount: number;
+  orderCountPrior: number;
+  orderGrowthPct: number;
+  avgOrderValue: number;
+  activeCustomers: number;
+  inventoryHealthScore: number;
+  lowStockCount: number;
+  activeTickets: number;
+  escalatedTickets: number;
+  sparkline: SalesBucket[];
+}
+
+export interface SalesTrend {
+  granularity: "day" | "week" | "month";
+  current: SalesBucket[];
+  prior: SalesBucket[];
+}
+
+export interface TopCustomer {
+  customerId: string;
+  name: string;
+  email: string;
+  totalSpend: number;
+  orderCount: number;
+}
+
+export interface TopProduct {
+  productId: string;
+  name: string;
+  brand: string;
+  sku: string;
+  quantitySold: number;
+  revenue: number;
+}
+
+export interface SupportSnapshot {
+  created: number;
+  queued: number;
+  triaged: number;
+  escalated: number;
+  resolved: number;
+  highUrgency: number;
+  avgTriageMinutes: number | null;
+}
+
+export interface ActivityItem {
+  type: "order" | "ticket" | "inventory" | "notification";
+  title: string;
+  description: string;
+  severity: "info" | "warning" | "critical";
+  timestamp: string;
+  referenceId: string | null;
+}
+
+export interface AiFeatureUsage {
+  feature: string;
+  calls: number;
+  inputTokens: number;
+  outputTokens: number;
+  costUsd: number;
+  avgLatencyMs: number;
+  failures: number;
+}
+
+export interface AiUsageBucket {
+  date: string;
+  calls: number;
+  costUsd: number;
+}
+
+export interface AiUsageStats {
+  totalCalls: number;
+  failures: number;
+  inputTokens: number;
+  outputTokens: number;
+  costUsd: number;
+  avgLatencyMs: number;
+  byFeature: AiFeatureUsage[];
+  byDay: AiUsageBucket[];
+}
+
+export interface DashboardRange {
+  from?: string;
+  to?: string;
+  granularity?: "day" | "week" | "month";
+  take?: number;
+}
+
+function rangeParams(range: DashboardRange = {}): string {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(range)) {
+    if (value !== undefined && value !== null) params.set(key, String(value));
+  }
+  return params.toString();
+}
+
+export const dashApi = {
+  summary: (r?: DashboardRange) =>
+    request<DashboardSummary>(`/api/dashboard/summary?${rangeParams(r)}`),
+  sales: (r?: DashboardRange) =>
+    request<SalesTrend>(`/api/dashboard/sales?${rangeParams(r)}`),
+  topCustomers: (r?: DashboardRange) =>
+    request<TopCustomer[]>(`/api/dashboard/top-customers?${rangeParams(r)}`),
+  topProducts: (r?: DashboardRange) =>
+    request<TopProduct[]>(`/api/dashboard/top-products?${rangeParams(r)}`),
+  supportSnapshot: (r?: DashboardRange) =>
+    request<SupportSnapshot>(`/api/dashboard/support-snapshot?${rangeParams(r)}`),
+  recentActivity: (take = 20) =>
+    request<ActivityItem[]>(`/api/dashboard/recent-activity?take=${take}`),
+  aiUsage: (r?: DashboardRange) =>
+    request<AiUsageStats>(`/api/dashboard/ai-usage?${rangeParams(r)}`),
+};
+
+// ── AI command center (Phase 4) ──────────────────────────────────────────────
+
+export interface ChatSource {
+  title: string;
+  kind: string;
+}
+
+export interface ChatActionLink {
+  label: string;
+  route: string;
+}
+
+export interface ChatChart {
+  type: "bar" | "line" | "area" | "doughnut";
+  labels: string[];
+  datasets: { label: string; data: number[] }[];
+}
+
+export interface BrainChatResponse {
+  reply: string;
+  conversationId: string;
+  intent: string;
+  domains: string[];
+  sources: ChatSource[];
+  actions: ChatActionLink[];
+  chart: ChatChart | null;
+}
+
+export const brainApi = {
+  chat: (body: { message: string; conversationId?: string; currentPage?: string }) =>
+    request<BrainChatResponse>("/api/brain/chat", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+};
