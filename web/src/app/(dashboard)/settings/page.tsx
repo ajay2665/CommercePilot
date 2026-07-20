@@ -12,7 +12,7 @@ export default function SettingsPage() {
       <div>
         <h1 className="text-xl font-semibold">Settings</h1>
         <p className="text-sm text-slate-500">
-          Runtime toggles live in <code className="rounded bg-slate-100 px-1">src/Commerce.Api/appsettings.json</code> —
+          Runtime toggles live in <code className="rounded bg-slate-100 px-1">src/StorePilot.Api/appsettings.json</code> —
           local-first defaults, cloud services opt-in. A UI for these arrives with Phase 4 auth.
         </p>
       </div>

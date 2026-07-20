@@ -1,4 +1,4 @@
-# Commerce
+# StorePilot
 
 AI-first commerce platform — Support, Inventory and Shopping intelligence as vertical pods on one FastEndpoints modular monolith. **Fully local:** SQL Server LocalDB + Ollama, no Docker, no cloud keys.
 
@@ -23,7 +23,7 @@ Prereqs (already set up on this machine): .NET 9 SDK, Node 20+, SQL Server Local
 
 ```powershell
 # 1. API — http://localhost:5080 (swagger at /swagger); migrates + seeds on first run
-dotnet run --project src/Commerce.Api
+dotnet run --project src/StorePilot.Api
 
 # 2. Dashboard — http://localhost:3000
 cd web; npm run dev
@@ -41,12 +41,12 @@ Invoke-RestMethod -Method Post -Uri http://localhost:5080/api/support/triage `
 ## Layout
 
 ```
-src/Commerce.Api             FastEndpoints host — feature slices (REPR), workers, composition root
-src/Commerce.Application     Use cases: commands/queries, triage pipeline, events, prompts, options
-src/Commerce.Domain          Entities + enums, zero dependencies
-src/Commerce.Infrastructure  EF Core (LocalDB), event bus, work queue, Ollama client, seeder
-src/Commerce.Shared          Cross-cutting primitives
-tests/Commerce.UnitTests     Routing precedence + classification parser tests
+src/StorePilot.Api             FastEndpoints host — feature slices (REPR), workers, composition root
+src/StorePilot.Application     Use cases: commands/queries, triage pipeline, events, prompts, options
+src/StorePilot.Domain          Entities + enums, zero dependencies
+src/StorePilot.Infrastructure  EF Core (LocalDB), event bus, work queue, Ollama client, seeder
+src/StorePilot.Shared          Cross-cutting primitives
+tests/StorePilot.UnitTests     Routing precedence + classification parser tests
 web/                         Next.js 15 dashboard (Tailwind, TanStack Query)
 md/                          Architecture doc + pod build plans
 ```
@@ -55,7 +55,7 @@ md/                          Architecture doc + pod build plans
 
 Local-first by default; cloud services are opt-in (`archtecture.txt` decision 10):
 
-- `Llm` — `ollama` (default, free/local) | `openai` (wired) | `gemini` (stub). To use your GPT key, put this in git-ignored `src/Commerce.Api/appsettings.Development.json` (or set `OPENAI_API_KEY`) and restart:
+- `Llm` — `ollama` (default, free/local) | `openai` (wired) | `gemini` (stub). To use your GPT key, put this in git-ignored `src/StorePilot.Api/appsettings.Development.json` (or set `OPENAI_API_KEY`) and restart:
 
   ```json
   "Llm": {

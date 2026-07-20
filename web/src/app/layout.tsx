@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Commerce",
+  title: "StorePilot",
   description: "AI-first commerce platform — Support, Inventory and Shopping intelligence",
 };
 
