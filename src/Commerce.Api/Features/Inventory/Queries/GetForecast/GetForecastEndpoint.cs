@@ -1,5 +1,4 @@
 using Commerce.Application.Abstractions;
-using Commerce.Domain.Entities;
 using FastEndpoints;
 
 namespace Commerce.Api.Features.Inventory.Queries.GetForecast;

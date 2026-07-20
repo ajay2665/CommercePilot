@@ -1,5 +1,5 @@
-using System.Text;
 using Commerce.Application.Abstractions;
+using System.Text;
 
 namespace Commerce.Infrastructure.Orchestrator.Agents;
 

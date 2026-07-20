@@ -1,6 +1,5 @@
 using Commerce.Application.Abstractions;
 using Commerce.Application.Features.Support;
-using Commerce.Domain;
 using Commerce.Domain.Entities;
 using Commerce.Shared;
 using FastEndpoints;

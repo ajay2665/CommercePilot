@@ -1,10 +1,10 @@
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Commerce.Application.Features.Support;
 using Commerce.Infrastructure;
 using Commerce.Infrastructure.Persistence;
 using FastEndpoints;
 using FastEndpoints.Swagger;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.UseUrls("http://localhost:5080");

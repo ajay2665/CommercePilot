@@ -195,8 +195,13 @@ public sealed class DashboardQueries(
             .Where(a => a.CreatedAt >= from && a.CreatedAt < to)
             .Select(a => new
             {
-                a.Feature, a.InputTokens, a.OutputTokens,
-                a.LatencyMs, a.CostUsd, a.Success, a.CreatedAt,
+                a.Feature,
+                a.InputTokens,
+                a.OutputTokens,
+                a.LatencyMs,
+                a.CostUsd,
+                a.Success,
+                a.CreatedAt,
             })
             .ToListAsync(ct);
 

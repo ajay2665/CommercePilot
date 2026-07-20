@@ -1,4 +1,3 @@
-using System.Text;
 using Commerce.Application.Abstractions;
 using Commerce.Application.Ai.Prompts;
 using Commerce.Domain;
@@ -7,6 +6,7 @@ using Commerce.Infrastructure.Inventory;
 using Commerce.Infrastructure.Persistence;
 using Commerce.Infrastructure.Shopping;
 using Microsoft.EntityFrameworkCore;
+using System.Text;
 
 namespace Commerce.Infrastructure.Ai;
 

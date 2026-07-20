@@ -1,8 +1,8 @@
-using System.Text;
 using Commerce.Application.Abstractions;
 using Commerce.Domain;
 using Commerce.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using System.Text;
 
 namespace Commerce.Infrastructure.Orchestrator.Agents;
 

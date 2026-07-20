@@ -1,4 +1,3 @@
-using Commerce.Domain;
 using Commerce.Domain.Entities;
 
 namespace Commerce.Application.Abstractions;

@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Commerce.Domain;
 using Commerce.Domain.Entities;
 using Commerce.Infrastructure.Persistence;
@@ -7,6 +6,7 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Text.Json;
 
 namespace Commerce.Infrastructure.Ai;
 

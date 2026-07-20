@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Commerce.Application.Abstractions;
 using Commerce.Application.Ai.Prompts;
 using Commerce.Application.Features.Support;
@@ -8,6 +7,7 @@ using Commerce.Infrastructure.Persistence;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Diagnostics;
 
 namespace Commerce.Infrastructure.Ai;
 

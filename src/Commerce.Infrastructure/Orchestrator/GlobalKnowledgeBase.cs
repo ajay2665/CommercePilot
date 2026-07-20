@@ -1,6 +1,6 @@
-using System.Text;
 using Commerce.Application.Abstractions;
 using Commerce.Infrastructure.Ai;
+using System.Text;
 
 namespace Commerce.Infrastructure.Orchestrator;
 

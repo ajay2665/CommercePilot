@@ -9,7 +9,7 @@ namespace Commerce.Api.Features.Platform.Queries.GetStatus;
 public sealed class GetStatusEndpoint : EndpointWithoutRequest<StatusResponse>
 {
     public const string Route = "/api/status";
-    
+
     private readonly IWorkQueue<TriageWorkItem> _queue;
     private readonly TriageStatus _status;
 

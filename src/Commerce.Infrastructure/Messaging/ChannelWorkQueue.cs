@@ -1,5 +1,5 @@
-using System.Threading.Channels;
 using Commerce.Application.Abstractions;
+using System.Threading.Channels;
 
 namespace Commerce.Infrastructure.Messaging;
 

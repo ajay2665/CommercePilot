@@ -1,6 +1,6 @@
-using System.Text;
 using Commerce.Application.Abstractions;
 using Commerce.Domain.Entities;
+using System.Text;
 
 namespace Commerce.Infrastructure.Orchestrator.Agents;
 

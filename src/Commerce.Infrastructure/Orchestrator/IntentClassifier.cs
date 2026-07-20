@@ -1,8 +1,8 @@
-using System.Text.Json;
 using Commerce.Application.Abstractions;
 using Commerce.Application.Ai.Prompts;
 using Commerce.Infrastructure.Ai;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
 
 namespace Commerce.Infrastructure.Orchestrator;
 

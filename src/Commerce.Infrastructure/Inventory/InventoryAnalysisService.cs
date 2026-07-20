@@ -113,7 +113,10 @@ public sealed class InventoryAnalysisService(
                 if (unacknowledged[(product.Id, type)].Any()) return;
                 db.InventoryAlerts.Add(new InventoryAlert
                 {
-                    ProductId = product.Id, Type = type, Severity = severity, Message = message,
+                    ProductId = product.Id,
+                    Type = type,
+                    Severity = severity,
+                    Message = message,
                 });
                 if (type == AlertType.LowStock)
                     await bus.PublishAsync(new StockLow(

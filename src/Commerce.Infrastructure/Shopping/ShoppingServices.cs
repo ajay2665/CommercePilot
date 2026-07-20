@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Commerce.Application.Abstractions;
 using Commerce.Application.Options;
 using Commerce.Domain.Entities;
@@ -6,6 +5,7 @@ using Commerce.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Text.Json;
 
 namespace Commerce.Infrastructure.Shopping;
 

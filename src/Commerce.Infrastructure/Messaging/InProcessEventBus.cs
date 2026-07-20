@@ -1,10 +1,10 @@
-using System.Collections.Concurrent;
-using System.Reflection;
-using System.Threading.Channels;
 using Commerce.Application.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using System.Collections.Concurrent;
+using System.Reflection;
+using System.Threading.Channels;
 
 namespace Commerce.Infrastructure.Messaging;
 
