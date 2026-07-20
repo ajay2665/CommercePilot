@@ -3,17 +3,17 @@ using Commerce.Application.Features.Support;
 using Commerce.Infrastructure.Workers;
 using FastEndpoints;
 
-namespace Commerce.Api.Features.Platform;
-
-public sealed record StatusResponse(int Queued, Guid? ProcessingTicketId, string? ProcessingSubject, string? Stage);
+namespace Commerce.Api.Features.Platform.Queries.GetStatus;
 
 /// <summary>Dashboard header pill: queue depth + what the worker is doing right now.</summary>
-public sealed class StatusEndpoint : EndpointWithoutRequest<StatusResponse>
+public sealed class GetStatusEndpoint : EndpointWithoutRequest<StatusResponse>
 {
+    public const string Route = "/api/status";
+    
     private readonly IWorkQueue<TriageWorkItem> _queue;
     private readonly TriageStatus _status;
 
-    public StatusEndpoint(IWorkQueue<TriageWorkItem> queue, TriageStatus status)
+    public GetStatusEndpoint(IWorkQueue<TriageWorkItem> queue, TriageStatus status)
     {
         _queue = queue;
         _status = status;
@@ -21,7 +21,7 @@ public sealed class StatusEndpoint : EndpointWithoutRequest<StatusResponse>
 
     public override void Configure()
     {
-        Get("/api/status");
+        Get(Route);
         AllowAnonymous();
     }
 

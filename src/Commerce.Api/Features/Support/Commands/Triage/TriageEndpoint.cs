@@ -1,27 +1,7 @@
 using Commerce.Application.Features.Support;
 using FastEndpoints;
-using FluentValidation;
 
-namespace Commerce.Api.Features.Support;
-
-public sealed class TriageRequest
-{
-    public string Subject { get; set; } = "";
-    public string Body { get; set; } = "";
-    public string Sender { get; set; } = "";
-}
-
-public sealed record TriageResponse(Guid TicketId, string Status);
-
-public sealed class TriageValidator : Validator<TriageRequest>
-{
-    public TriageValidator()
-    {
-        RuleFor(x => x.Subject).NotEmpty().MaximumLength(512);
-        RuleFor(x => x.Body).NotEmpty();
-        RuleFor(x => x.Sender).NotEmpty().MaximumLength(256);
-    }
-}
+namespace Commerce.Api.Features.Support.Commands.Triage;
 
 /// <summary>
 /// Intake (local mode: dashboard submit form; Gmail poller posts here too once
@@ -29,9 +9,11 @@ public sealed class TriageValidator : Validator<TriageRequest>
 /// </summary>
 public sealed class TriageEndpoint : Endpoint<TriageRequest, TriageResponse>
 {
+    public const string Route = "/api/support/triage";
+
     public override void Configure()
     {
-        Post("/api/support/triage");
+        Post(Route);
         AllowAnonymous(); // Phase-1 static key is enforced by middleware; JWT roles in Phase 4
     }
 
